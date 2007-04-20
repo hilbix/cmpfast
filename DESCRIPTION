@@ -1,0 +1,27 @@
+Fast compare two files binary
+# $Header$
+#
+# $Log$
+# Revision 1.1  2007-04-20 20:44:39  tino
+# Yet untested first version
+#
+
+This is just a binary compare for two files.
+
+Why another program as cmp does the job?
+
+cmp is not very fast when you read two files from the same hard drive.
+The problem is called "thrashing", as the read heads of the hard drive
+are moving wildly on the surface and effective read speed drops very
+low.
+
+cmpfast reads files in bigger blocks (by default 1 MB), thus reducing
+thrashing a lot.  It also switches sides to double the continuously
+read blocks, thus speeding up tinogs again.  On modern fast hard
+drives you still hear a thrashing sound, this is because you still
+have 30 to 40 head movements per second to compare 30 MB or more per
+second.  It would be not easy to go below this number, as it then
+needs a highly filesystem optimized low level access which is unlikely
+to be possible.  So even cmpfast is very simple it's not easy to speed
+up more, even not if you raise the compare buffer size.  1 MB should
+be a good size for all possibilities.
