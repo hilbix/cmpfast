@@ -20,7 +20,10 @@
  * USA
  *
  * $Log$
- * Revision 1.3  2007-04-20 20:50:52  tino
+ * Revision 1.4  2007-04-20 20:53:35  tino
+ * I mixed numbers in error output
+ *
+ * Revision 1.3  2007/04/20 20:50:52  tino
  * TYPE_ERR clarified (and used)
  *
  * Revision 1.2  2007/04/20 20:49:48  tino
@@ -100,7 +103,7 @@ main(int argc, char **argv)
       fd[n]	= 0;
       if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_open(argv[argn+n], 0))<0)
 	{
-	  tino_err("%s %s not found", n ? "ETTFC101E" : "ETTFC102E", argv[argn+n]);
+	  tino_err("%s %s not found", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
 	}
     }
