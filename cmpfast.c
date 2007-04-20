@@ -20,7 +20,10 @@
  * USA
  *
  * $Log$
- * Revision 1.4  2007-04-20 20:53:35  tino
+ * Revision 1.5  2007-04-20 23:58:57  tino
+ * Added better messages and option -s
+ *
+ * Revision 1.4  2007/04/20 20:53:35  tino
  * I mixed numbers in error output
  *
  * Revision 1.3  2007/04/20 20:50:52  tino
@@ -31,7 +34,6 @@
  *
  * Revision 1.1  2007/04/20 20:44:39  tino
  * Yet untested first version
- *
  */
 
 #include "tino/file.h"
@@ -60,9 +62,10 @@
 int
 main(int argc, char **argv)
 {
-  int		argn, fd[2], n, eof;
-  unsigned long	buflen;
-  char		cmpbuf[BUFSIZ*10], *buf;
+  int			argn, fd[2], n, eof;
+  unsigned long		buflen, cmplen;
+  char			*cmpbuf, *buf;
+  unsigned long long	pos;
 
   argn	= tino_getopt(argc, argv, 2, 2,
 		      TINO_GETOPT_VERSION(CMPFAST_VERSION)
@@ -75,11 +78,21 @@ main(int argc, char **argv)
 		      ,
 		      TINO_GETOPT_ULONGINT TINO_GETOPT_SUFFIX
 		      TINO_GETOPT_DEFAULT
-		      TINO_GETOPT_MIN TINO_GETOPT_MAX
-		      "b size	Buffer size"
+		      TINO_GETOPT_MIN_PTR TINO_GETOPT_MAX
+		      "b size	Big buffer size"
+		      , &cmplen							/* min	*/
 		      , &buflen,
-		      1024ul*1024ul,
-		      4096ul, (unsigned long)(INT_MAX>SSIZE_MAX ? SSIZE_MAX : INT_MAX),
+		      1024ul*1024ul,						/* default	*/
+		      (unsigned long)(INT_MAX>SSIZE_MAX ? SSIZE_MAX : INT_MAX),	/* max	*/
+
+		      TINO_GETOPT_ULONGINT TINO_GETOPT_SUFFIX
+		      TINO_GETOPT_DEFAULT
+		      TINO_GETOPT_MIN TINO_GETOPT_MAX_PTR
+		      "s size	Small buffer size"
+		      , &buflen			/* max	*/
+		      , &cmplen,
+		      (unsigned long)BUFSIZ*10,	/* default	*/
+		      (unsigned long)BUFSIZ,	/* min	*/
 
 		      NULL
 		      );
@@ -91,6 +104,7 @@ main(int argc, char **argv)
    *
    * Maximum buffer size shall be not higher than the smallest file size.
    */
+  cmpbuf= tino_alloc(buflen);
   buf	= tino_alloc(buflen);
 
   /* XXX TODO
@@ -103,13 +117,13 @@ main(int argc, char **argv)
       fd[n]	= 0;
       if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_open(argv[argn+n], 0))<0)
 	{
-	  tino_err("%s %s not found", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
+	  tino_err("%s open error on file %s", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
 	}
     }
   if (!fd[0] && !fd[1])
     {
-      tino_err("ETTFC100F - both files cannot be stdin");
+      tino_err("ETTFC100F both files cannot be stdin");
       return -1;
     }
 
@@ -117,6 +131,7 @@ main(int argc, char **argv)
    *
    * Extend to more than 2 file handles.
    */
+  pos	= 0;
   eof	= 0;
   for (n=0;; )
     {
@@ -127,7 +142,7 @@ main(int argc, char **argv)
       got	= tino_file_read(fd[n], buf, buflen);
       if (got<0)
 	{
-	  tino_err("%s %s read error", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
+	  tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
 	  return -1;
 	}
       n		= !n;
@@ -140,7 +155,7 @@ main(int argc, char **argv)
 	}
       if (eof)
 	{
-	  tino_err("%s %s eof on file", (n ? "WTTFC122A" : "WTTFC121A"), argv[argn+n]);
+	  tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC122A" : "NTTFC121A"), pos, argv[argn+n]);
 	  return 1;
 	}
       for (off=0; off<got; )
@@ -148,25 +163,53 @@ main(int argc, char **argv)
 	  int	max, cmp;
 
 	  max	= got-off;
-	  if (max>sizeof cmpbuf)
-	    max	= sizeof cmpbuf;
+	  if (max>cmplen)
+	    max	= cmplen;
 	  cmp	= tino_file_read(fd[n], cmpbuf, max);
 	  if (cmp<0)
 	    {
-	      tino_err("%s %s read error", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
+	      tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
 	      return -1;
 	    }
 	  if (!cmp)
 	    {
-	      tino_err("%s %s eof on file", (n ? "WTTFC122A" : "WTTFC121A"), argv[argn+n]);
+	      tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC122A" : "NTTFC121A"), pos, argv[argn+n]);
 	      return 1;
 	    }
 	  if (memcmp(cmpbuf, buf+off, cmp))
 	    {
-	      tino_err("NTTFC130A files differ");
+	      int	i, a, b;
+
+	      /* Paranoied as I am, default output is to inform about
+	       * some weird situation
+	       */
+	      a	= -1;
+	      b	= -1;
+	      /* Hunt for the byte which was different
+	       */
+	      for (i=0; i<cmp; i++)
+		if (cmpbuf[i]!=buf[off+i])
+		  {
+		    a	= (unsigned char)buf[off+i];
+		    b	= (unsigned char)cmpbuf[i];
+		    break;
+		  }
+	      pos		+= i;
+	      if (!n)
+		{
+		  int	x;
+
+		  /* Switch byte sides if we are reveresed
+		   */
+		  x	= a;
+		  a	= b;
+		  b	= x;
+		}
+	      tino_err("ITTFC130B files differ at byte %llu ($%02x $%02x)", pos, a, b);
 	      return 2;
 	    }
 	  off	+= cmp;
+	  pos	+= cmp;
 	}
       /* Now roles of the two files are reversed, so reads come from
        * the same file which was compared before.
