@@ -20,7 +20,10 @@
  * USA
  *
  * $Log$
- * Revision 1.1  2007-04-20 20:44:39  tino
+ * Revision 1.2  2007-04-20 20:49:48  tino
+ * TYPE_ERR (E) added
+ *
+ * Revision 1.1  2007/04/20 20:44:39  tino
  * Yet untested first version
  *
  */
@@ -58,7 +61,7 @@ main(int argc, char **argv)
   argn	= tino_getopt(argc, argv, 2, 2,
 		      TINO_GETOPT_VERSION(CMPFAST_VERSION)
 		      " file1 file2\n"
-		      "	fast compare two files, use - for stdin.\n"
+		      "	fast binary compare of two files, use - for stdin.\n"
 		      "	returns 0 (true) if equal, something else else",
 
 		      TINO_GETOPT_USAGE
@@ -94,12 +97,15 @@ main(int argc, char **argv)
       fd[n]	= 0;
       if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_open(argv[argn+n], 0))<0)
 	{
-	  tino_err("%s %s not found", n ? "ETTFC101A" : "ETTFC102A", argv[argn+n]);
+	  tino_err("%s %s not found", n ? "ETTFC101F" : "ETTFC102F", argv[argn+n]);
 	  return -1;
 	}
     }
   if (!fd[0] && !fd[1])
-    tino_err("ETTFC100A - both files cannot be stdin");
+    {
+      tino_err("ETTFC100F - both files cannot be stdin");
+      return -1;
+    }
 
   /* XXX TODO
    *
@@ -115,7 +121,7 @@ main(int argc, char **argv)
       got	= tino_file_read(fd[n], buf, buflen);
       if (got<0)
 	{
-	  tino_err("%s %s read error", (n ? "ETTFC112A" : "ETTFC111A"), argv[argn+n]);
+	  tino_err("%s %s read error", (n ? "ETTFC112F" : "ETTFC111F"), argv[argn+n]);
 	  return -1;
 	}
       n		= !n;
@@ -129,7 +135,7 @@ main(int argc, char **argv)
       if (eof)
 	{
 	  tino_err("%s %s eof on file", (n ? "WTTFC122A" : "WTTFC121A"), argv[argn+n]);
-	  return -1;
+	  return 1;
 	}
       for (off=0; off<got; )
 	{
@@ -141,13 +147,13 @@ main(int argc, char **argv)
 	  cmp	= tino_file_read(fd[n], cmpbuf, max);
 	  if (cmp<0)
 	    {
-	      tino_err("%s %s read error", (n ? "ETTFC112A" : "ETTFC111A"), argv[argn+n]);
+	      tino_err("%s %s read error", (n ? "ETTFC112F" : "ETTFC111F"), argv[argn+n]);
 	      return -1;
 	    }
 	  if (!cmp)
 	    {
 	      tino_err("%s %s eof on file", (n ? "WTTFC122A" : "WTTFC121A"), argv[argn+n]);
-	      return -1;
+	      return 1;
 	    }
 	  if (memcmp(cmpbuf, buf+off, cmp))
 	    {
