@@ -20,7 +20,10 @@
  * USA
  *
  * $Log$
- * Revision 1.2  2007-04-20 20:49:48  tino
+ * Revision 1.3  2007-04-20 20:50:52  tino
+ * TYPE_ERR clarified (and used)
+ *
+ * Revision 1.2  2007/04/20 20:49:48  tino
  * TYPE_ERR (E) added
  *
  * Revision 1.1  2007/04/20 20:44:39  tino
@@ -97,7 +100,7 @@ main(int argc, char **argv)
       fd[n]	= 0;
       if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_open(argv[argn+n], 0))<0)
 	{
-	  tino_err("%s %s not found", n ? "ETTFC101F" : "ETTFC102F", argv[argn+n]);
+	  tino_err("%s %s not found", n ? "ETTFC101E" : "ETTFC102E", argv[argn+n]);
 	  return -1;
 	}
     }
@@ -121,7 +124,7 @@ main(int argc, char **argv)
       got	= tino_file_read(fd[n], buf, buflen);
       if (got<0)
 	{
-	  tino_err("%s %s read error", (n ? "ETTFC112F" : "ETTFC111F"), argv[argn+n]);
+	  tino_err("%s %s read error", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
 	  return -1;
 	}
       n		= !n;
@@ -147,7 +150,7 @@ main(int argc, char **argv)
 	  cmp	= tino_file_read(fd[n], cmpbuf, max);
 	  if (cmp<0)
 	    {
-	      tino_err("%s %s read error", (n ? "ETTFC112F" : "ETTFC111F"), argv[argn+n]);
+	      tino_err("%s %s read error", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
 	      return -1;
 	    }
 	  if (!cmp)
