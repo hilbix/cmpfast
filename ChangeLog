@@ -1,0 +1,5 @@
+2007-09-26    <tino@firebird.03.softkill.net>
+
+	* cmpfast.c (main): code review revealed, that I alloced too much
+	memory in case small-buffer was different to big-buffer.
+

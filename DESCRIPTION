@@ -2,7 +2,10 @@ Fast compare two files binary
 # $Header$
 #
 # $Log$
-# Revision 1.1  2007-04-20 20:44:39  tino
+# Revision 1.2  2007-09-26 03:12:16  tino
+# Memory footprint decreased in most situations.
+#
+# Revision 1.1  2007/04/20 20:44:39  tino
 # Yet untested first version
 #
 
@@ -17,7 +20,7 @@ low.
 
 cmpfast reads files in bigger blocks (by default 1 MB), thus reducing
 thrashing a lot.  It also switches sides to double the continuously
-read blocks, thus speeding up tinogs again.  On modern fast hard
+read blocks, thus speeding up fastcmp again.  On modern fast hard
 drives you still hear a thrashing sound, this is because you still
 have 30 to 40 head movements per second to compare 30 MB or more per
 second.  It would be not easy to go below this number, as it then

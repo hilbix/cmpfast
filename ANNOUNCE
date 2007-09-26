@@ -1,5 +1,3 @@
-First rough version.
+Minor bug removed: Now cmpfast uses less memory in most cases.
 
-In this version I started to provide error tags.
-However the output format will change in future when error tags
-are completely supported by tinolib.
+Also version of tinolib was updated.

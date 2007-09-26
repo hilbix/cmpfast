@@ -20,7 +20,10 @@
  * USA
  *
  * $Log$
- * Revision 1.5  2007-04-20 23:58:57  tino
+ * Revision 1.6  2007-09-26 03:12:16  tino
+ * Memory footprint decreased in most situations.
+ *
+ * Revision 1.5  2007/04/20 23:58:57  tino
  * Added better messages and option -s
  *
  * Revision 1.4  2007/04/20 20:53:35  tino
@@ -104,7 +107,7 @@ main(int argc, char **argv)
    *
    * Maximum buffer size shall be not higher than the smallest file size.
    */
-  cmpbuf= tino_alloc(buflen);
+  cmpbuf= tino_alloc(cmplen);
   buf	= tino_alloc(buflen);
 
   /* XXX TODO
@@ -115,7 +118,7 @@ main(int argc, char **argv)
   for (n=0; n<2; n++)
     {
       fd[n]	= 0;
-      if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_open(argv[argn+n], 0))<0)
+      if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_openE(argv[argn+n], 0))<0)
 	{
 	  tino_err("%s open error on file %s", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
@@ -139,7 +142,7 @@ main(int argc, char **argv)
 
       if (!eof && !fd[n])
 	n	= !n;		/* Avoid stdin in the read buffer	*/
-      got	= tino_file_read(fd[n], buf, buflen);
+      got	= tino_file_readE(fd[n], buf, buflen);
       if (got<0)
 	{
 	  tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
@@ -165,7 +168,7 @@ main(int argc, char **argv)
 	  max	= got-off;
 	  if (max>cmplen)
 	    max	= cmplen;
-	  cmp	= tino_file_read(fd[n], cmpbuf, max);
+	  cmp	= tino_file_readE(fd[n], cmpbuf, max);
 	  if (cmp<0)
 	    {
 	      tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
