@@ -2,7 +2,7 @@
  *
  * fast binary compare for two files
  *
- * Copyright (C)2007 Valentin Hilbig <webmaster@scylla-charybdis.com>
+ * Copyright (C)2007-2008 Valentin Hilbig <webmaster@scylla-charybdis.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -16,10 +16,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
- * USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.7  2008-04-22 23:57:27  tino
+ * Option -v
+ *
  * Revision 1.6  2007-09-26 03:12:16  tino
  * Memory footprint decreased in most situations.
  *
@@ -34,9 +37,6 @@
  *
  * Revision 1.2  2007/04/20 20:49:48  tino
  * TYPE_ERR (E) added
- *
- * Revision 1.1  2007/04/20 20:44:39  tino
- * Yet untested first version
  */
 
 #include "tino/file.h"
@@ -47,6 +47,20 @@
 #include "cmpfast_version.h"
 
 #include <limits.h>
+#include <time.h>
+
+static void
+show(int n, unsigned long long pos)
+{
+  static time_t	last;
+  time_t	now;
+
+  time(&now);
+  if (last==now)
+    return;
+  last	= now;
+  printf("%d %lluM \r", n, pos>>20);
+}
 
 /* Possible extensions:
  *
@@ -65,7 +79,7 @@
 int
 main(int argc, char **argv)
 {
-  int			argn, fd[2], n, eof;
+  int			argn, fd[2], n, eof, verbose;
   unsigned long		buflen, cmplen;
   char			*cmpbuf, *buf;
   unsigned long long	pos;
@@ -96,6 +110,10 @@ main(int argc, char **argv)
 		      , &cmplen,
 		      (unsigned long)BUFSIZ*10,	/* default	*/
 		      (unsigned long)BUFSIZ,	/* min	*/
+
+		      TINO_GETOPT_FLAG
+		      "v	verbose, print progress"
+		      , &verbose,
 
 		      NULL
 		      );
@@ -142,6 +160,8 @@ main(int argc, char **argv)
 
       if (!eof && !fd[n])
 	n	= !n;		/* Avoid stdin in the read buffer	*/
+      if (verbose)
+	show(n, pos);
       got	= tino_file_readE(fd[n], buf, buflen);
       if (got<0)
 	{
@@ -161,6 +181,8 @@ main(int argc, char **argv)
 	  tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC122A" : "NTTFC121A"), pos, argv[argn+n]);
 	  return 1;
 	}
+      if (verbose)
+	show(n, pos);
       for (off=0; off<got; )
 	{
 	  int	max, cmp;

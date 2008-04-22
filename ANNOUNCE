@@ -1,3 +1,1 @@
-Minor bug removed: Now cmpfast uses less memory in most cases.
-
-Also version of tinolib was updated.
+Option -v added to show progress
