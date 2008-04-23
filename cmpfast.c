@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.8  2008-04-23 03:59:11  tino
+ * Forgot status flushing
+ *
  * Revision 1.7  2008-04-22 23:57:27  tino
  * Option -v
  *
@@ -60,6 +63,7 @@ show(int n, unsigned long long pos)
     return;
   last	= now;
   printf("%d %lluM \r", n, pos>>20);
+  fflush(stdout);
 }
 
 /* Possible extensions:
