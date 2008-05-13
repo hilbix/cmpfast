@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.9  2008-05-13 15:43:12  tino
+ * Standard return values on EOF
+ *
  * Revision 1.8  2008-04-23 03:59:11  tino
  * Forgot status flushing
  *
@@ -92,7 +95,8 @@ main(int argc, char **argv)
 		      TINO_GETOPT_VERSION(CMPFAST_VERSION)
 		      " file1 file2\n"
 		      "	fast binary compare of two files, use - for stdin.\n"
-		      "	returns 0 (true) if equal, something else else",
+		      "	returns 0 (true) if equal, 10 if differ,\n"
+		      " 101/102 for EOF on file1/2, something else else",
 
 		      TINO_GETOPT_USAGE
 		      "h	This help"
@@ -183,7 +187,7 @@ main(int argc, char **argv)
       if (eof)
 	{
 	  tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC122A" : "NTTFC121A"), pos, argv[argn+n]);
-	  return 1;
+	  return 101+n;
 	}
       if (verbose)
 	show(n, pos);
@@ -202,8 +206,8 @@ main(int argc, char **argv)
 	    }
 	  if (!cmp)
 	    {
-	      tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC122A" : "NTTFC121A"), pos, argv[argn+n]);
-	      return 1;
+	      tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC124A" : "NTTFC123A"), pos, argv[argn+n]);
+	      return 101+n;
 	    }
 	  if (memcmp(cmpbuf, buf+off, cmp))
 	    {
@@ -235,7 +239,7 @@ main(int argc, char **argv)
 		  b	= x;
 		}
 	      tino_err("ITTFC130B files differ at byte %llu ($%02x $%02x)", pos, a, b);
-	      return 2;
+	      return 10;
 	    }
 	  off	+= cmp;
 	  pos	+= cmp;

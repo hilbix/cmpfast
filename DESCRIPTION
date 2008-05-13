@@ -2,6 +2,9 @@ Fast compare two files binary
 # $Header$
 #
 # $Log$
+# Revision 1.3  2008-05-13 15:43:12  tino
+# Standard return values on EOF
+#
 # Revision 1.2  2007-09-26 03:12:16  tino
 # Memory footprint decreased in most situations.
 #
@@ -28,3 +31,11 @@ needs a highly filesystem optimized low level access which is unlikely
 to be possible.  So even cmpfast is very simple it's not easy to speed
 up more, even not if you raise the compare buffer size.  1 MB should
 be a good size for all possibilities.
+
+Cmpfast has following "standard" return values now:
+<br>* 0 (true) if everything ok (compares equal)
+<br>* 1 for usage etc.
+<br>* 10 if files differ in contents
+<br>* 101 if EOF on first file
+<br>* 102 if EOF on second file
+<br>* other return values (probably 255) on misc errors (like missing files)
