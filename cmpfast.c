@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.10  2008-05-13 15:45:02  tino
+ * Current tinolib
+ *
  * Revision 1.9  2008-05-13 15:43:12  tino
  * Standard return values on EOF
  *
@@ -133,8 +136,8 @@ main(int argc, char **argv)
    *
    * Maximum buffer size shall be not higher than the smallest file size.
    */
-  cmpbuf= tino_alloc(cmplen);
-  buf	= tino_alloc(buflen);
+  cmpbuf= tino_allocO(cmplen);
+  buf	= tino_allocO(buflen);
 
   /* XXX TODO
    *
