@@ -1,3 +1,7 @@
+2008-07-01  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* cmpfast.c (main): Usage corrected
+
 2007-09-26    <tino@firebird.03.softkill.net>
 
 	* cmpfast.c (main): code review revealed, that I alloced too much

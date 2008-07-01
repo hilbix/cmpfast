@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.11  2008-07-01 18:47:28  tino
+ * Usage had SPC instead of TAB
+ *
  * Revision 1.10  2008-05-13 15:45:02  tino
  * Current tinolib
  *
@@ -99,7 +102,7 @@ main(int argc, char **argv)
 		      " file1 file2\n"
 		      "	fast binary compare of two files, use - for stdin.\n"
 		      "	returns 0 (true) if equal, 10 if differ,\n"
-		      " 101/102 for EOF on file1/2, something else else",
+		      "	101/102 for EOF on file1/2, something else else",
 
 		      TINO_GETOPT_USAGE
 		      "h	This help"
