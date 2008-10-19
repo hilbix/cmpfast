@@ -1,5 +1,8 @@
 2008-10-20  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
+	* test/test.sh: Corrected to the new buffer alignment
+	requirements.
+
 	* cmpfast.c (main): buffer size alignment and O_DIRECT added, also
 	some error tags corrected.
 
