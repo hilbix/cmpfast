@@ -22,6 +22,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # $Log$
+# Revision 1.2  2008-10-19 23:33:31  tino
+# Install into /usr/local/bin
+#
 # Revision 1.1  2007-04-20 20:44:39  tino
 # Yet untested first version
 #
@@ -54,7 +57,7 @@ ADD_LDFLAGS=
    TINOCOPY=
 #    TINOINC=tino_common.h
 #    TINOLIB=tino/lib.h
-#INSTALLPATH=/usr/local
+ INSTALLPATH=/usr/local
 # DBG_CFLAGS=
 #DBG_LDFLAGS=
 # DBG_LDLIBS=-lefence
