@@ -1,3 +1,8 @@
+2008-10-20  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* cmpfast.c (main): buffer size alignment and O_DIRECT added, also
+	some error tags corrected.
+
 2008-07-01  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* cmpfast.c (main): Usage corrected

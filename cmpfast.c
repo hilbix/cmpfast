@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.12  2008-10-19 23:15:04  tino
+ * O_DIRECT
+ *
  * Revision 1.11  2008-07-01 18:47:28  tino
  * Usage had SPC instead of TAB
  *
@@ -93,9 +96,11 @@ int
 main(int argc, char **argv)
 {
   int			argn, fd[2], n, eof, verbose;
-  unsigned long		buflen, cmplen;
+  unsigned long		a_buflen, a_cmplen;
+  size_t		buflen, cmplen;
   char			*cmpbuf, *buf;
   unsigned long long	pos;
+  int			delta;
 
   argn	= tino_getopt(argc, argv, 2, 2,
 		      TINO_GETOPT_VERSION(CMPFAST_VERSION)
@@ -111,8 +116,8 @@ main(int argc, char **argv)
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN_PTR TINO_GETOPT_MAX
 		      "b size	Big buffer size"
-		      , &cmplen							/* min	*/
-		      , &buflen,
+		      , &a_cmplen						/* min	*/
+		      , &a_buflen,
 		      1024ul*1024ul,						/* default	*/
 		      (unsigned long)(INT_MAX>SSIZE_MAX ? SSIZE_MAX : INT_MAX),	/* max	*/
 
@@ -120,8 +125,8 @@ main(int argc, char **argv)
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN TINO_GETOPT_MAX_PTR
 		      "s size	Small buffer size"
-		      , &buflen			/* max	*/
-		      , &cmplen,
+		      , &a_buflen		/* max	*/
+		      , &a_cmplen,
 		      (unsigned long)BUFSIZ*10,	/* default	*/
 		      (unsigned long)BUFSIZ,	/* min	*/
 
@@ -139,8 +144,22 @@ main(int argc, char **argv)
    *
    * Maximum buffer size shall be not higher than the smallest file size.
    */
-  cmpbuf= tino_allocO(cmplen);
-  buf	= tino_allocO(buflen);
+  cmplen	= a_cmplen;
+  delta	= tino_alloc_align_size(&cmplen);
+  if (delta)
+    {
+      tino_err("FTTFC103 small buffer size must be alinged %d", delta);
+      return -1;
+    }
+  buflen= a_buflen;
+  delta	= tino_alloc_align_size(&buflen);
+  if (delta)
+    {
+      tino_err("FTTFC103 big buffer size must be alinged %d", delta);
+      return -1;
+    }
+  cmpbuf= tino_alloc_alignedO(cmplen);
+  buf	= tino_alloc_alignedO(buflen);
 
   /* XXX TODO
    *
@@ -150,7 +169,7 @@ main(int argc, char **argv)
   for (n=0; n<2; n++)
     {
       fd[n]	= 0;
-      if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_openE(argv[argn+n], 0))<0)
+      if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_openE(argv[argn+n], O_DIRECT))<0)
 	{
 	  tino_err("%s open error on file %s", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
@@ -158,7 +177,7 @@ main(int argc, char **argv)
     }
   if (!fd[0] && !fd[1])
     {
-      tino_err("ETTFC100F both files cannot be stdin");
+      tino_err("FTTFC100 both files cannot be stdin");
       return -1;
     }
 
@@ -199,11 +218,13 @@ main(int argc, char **argv)
 	show(n, pos);
       for (off=0; off<got; )
 	{
-	  int	max, cmp;
+	  int		cmp;
+	  size_t	max;
 
 	  max	= got-off;
 	  if (max>cmplen)
 	    max	= cmplen;
+	  tino_alloc_align_size(&max);	/* Hack for O_DIRECT, read only full pages	*/
 	  cmp	= tino_file_readE(fd[n], cmpbuf, max);
 	  if (cmp<0)
 	    {
