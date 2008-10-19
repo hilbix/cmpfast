@@ -4,6 +4,9 @@
 # A little test script
 #
 # $Log$
+# Revision 1.3  2008-10-19 23:25:05  tino
+# Version for buffer alignment
+#
 # Revision 1.2  2008-05-13 15:43:12  tino
 # Standard return values on EOF
 #
@@ -48,13 +51,13 @@ then
 fi
 }
 
-./byterun 200000 22 > testfile.a
-./byterun 200000 22 1 23 > testfile.b
+./byterun 204800 22 > testfile.a
+./byterun 204800 22 1 23 > testfile.b
 
-check2 101 "error: NTTFC121A at byte 200000 EOF on file testfile.a" -b100000 testfile.a testfile.b
-check2 102 "error: NTTFC122A at byte 200000 EOF on file testfile.a" -b200000 testfile.b testfile.a
-check2 101 "error: NTTFC123A at byte 200000 EOF on file testfile.a" -b200000 testfile.a testfile.b
-check2 102 "error: NTTFC124A at byte 200000 EOF on file testfile.a" -b100000 testfile.b testfile.a
+check2 101 "note: NTTFC121A at byte 204800 EOF on file testfile.a" -b102400 testfile.a testfile.b
+check2 102 "note: NTTFC122A at byte 204800 EOF on file testfile.a" -b204800 testfile.b testfile.a
+check2 101 "note: NTTFC123A at byte 204800 EOF on file testfile.a" -b204800 testfile.a testfile.b
+check2 102 "note: NTTFC124A at byte 204800 EOF on file testfile.a" -b102400 testfile.b testfile.a
 
 ./byterun $m 0 > testfile.x
 n=0
@@ -62,10 +65,10 @@ while [ $n -lt $m ]
 do
 	echo -n "$n: "
 	./byterun $n 0 1 1 $[m-n] 0 > "testfile.$n"
-	check2 10 "error: ITTFC130B files differ at byte $n (\$01 \$00)" testfile.$n testfile.x
-	check2 10 "error: ITTFC130B files differ at byte $n (\$00 \$01)" testfile.x testfile.$n
-	check2 10 "error: ITTFC130B files differ at byte $n (\$01 \$00)" -s8K -b9k testfile.$n testfile.x
-	check2 10 "error: ITTFC130B files differ at byte $n (\$00 \$01)" -s8K -b9k testfile.x testfile.$n
+	check2 10 "info: ITTFC130B files differ at byte $n (\$01 \$00)" testfile.$n testfile.x
+	check2 10 "info: ITTFC130B files differ at byte $n (\$00 \$01)" testfile.x testfile.$n
+	check2 10 "info: ITTFC130B files differ at byte $n (\$01 \$00)" -s8K -b12K testfile.$n testfile.x
+	check2 10 "info: ITTFC130B files differ at byte $n (\$00 \$01)" -s8K -b12K testfile.x testfile.$n
 	rm testfile.$n
 	let n++
 done
