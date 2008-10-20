@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.13  2008-10-20 01:00:34  tino
+ * Bugfix release for Filesystems lacking O_DIRECT support.
+ *
  * Revision 1.12  2008-10-19 23:15:04  tino
  * O_DIRECT
  *
@@ -76,6 +79,16 @@ show(int n, unsigned long long pos)
   last	= now;
   printf("%d %lluM \r", n, pos>>20);
   fflush(stdout);
+}
+
+static int
+try_open_read(const char *name)
+{
+  int	fd;
+
+  if ((fd=tino_file_openE(name, O_RDONLY|O_DIRECT))<0)
+    fd	= tino_file_openE(name, O_RDONLY);
+  return fd;
 }
 
 /* Possible extensions:
@@ -169,7 +182,7 @@ main(int argc, char **argv)
   for (n=0; n<2; n++)
     {
       fd[n]	= 0;
-      if (strcmp(argv[argn+n],"-") && (fd[n]=tino_file_openE(argv[argn+n], O_DIRECT))<0)
+      if (strcmp(argv[argn+n],"-") && (fd[n]=try_open_read(argv[argn+n]))<0)
 	{
 	  tino_err("%s open error on file %s", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
