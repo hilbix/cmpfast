@@ -1,7 +1,4 @@
-O_DIRECT for open() lessens buffer cache impact
+O_DIRECT now skipped on filesystems lacking O_DIRECT support.
 
-Another speedup fix: With O_DIRECT the kernel hopefully uses no buffer
-cache for the data, which lessens the memory pressure of cmpfast.  On
-some systems it might be that this slows down the performance of
-cmpfast itself, however then it reduces overall system load, which is
-desireable.
+If open() fails with O_DIRECT, it is retried without.
+Some filesystems (like FUSE) apparently do not support O_DIRECT.
