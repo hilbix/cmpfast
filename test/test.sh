@@ -4,6 +4,9 @@
 # A little test script
 #
 # $Log$
+# Revision 1.4  2010-03-30 19:38:01  tino
+# New test because I found a bug
+#
 # Revision 1.3  2008-10-19 23:25:05  tino
 # Version for buffer alignment
 #
@@ -58,6 +61,14 @@ check2 101 "note: NTTFC121A at byte 204800 EOF on file testfile.a" -b102400 test
 check2 102 "note: NTTFC122A at byte 204800 EOF on file testfile.a" -b204800 testfile.b testfile.a
 check2 101 "note: NTTFC123A at byte 204800 EOF on file testfile.a" -b204800 testfile.a testfile.b
 check2 102 "note: NTTFC124A at byte 204800 EOF on file testfile.a" -b102400 testfile.b testfile.a
+
+./byterun 5100 99 > testfile.a
+./byterun 5101 99 > testfile.b
+
+check2 101 "note: NTTFC123A at byte 5100 EOF on file testfile.a" testfile.a testfile.b
+check2 102 "note: NTTFC124A at byte 5100 EOF on file testfile.a" testfile.b testfile.a
+check2 101 "note: NTTFC123A at byte 5100 EOF on file testfile.a" testfile.a testfile.b
+check2 102 "note: NTTFC124A at byte 5100 EOF on file testfile.a" testfile.b testfile.a
 
 ./byterun $m 0 > testfile.x
 n=0
