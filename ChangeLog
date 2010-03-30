@@ -1,3 +1,8 @@
+2010-03-30  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* cmpfast.c (main): Bugfix: When reading less than a page,
+	sometimes the diff wasn't reported correctly.
+
 2008-10-20  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* cmpfast.c (try_open_read): added for FS lacking O_DIRECT

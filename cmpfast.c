@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.14  2010-03-30 19:42:48  tino
+ * Bugfix on rounding problems.
+ *
  * Revision 1.13  2008-10-20 01:00:34  tino
  * Bugfix release for Filesystems lacking O_DIRECT support.
  *
@@ -158,14 +161,14 @@ main(int argc, char **argv)
    * Maximum buffer size shall be not higher than the smallest file size.
    */
   cmplen	= a_cmplen;
-  delta	= tino_alloc_align_size(&cmplen);
+  delta	= tino_alloc_align_sizeO(&cmplen);
   if (delta)
     {
       tino_err("FTTFC103 small buffer size must be alinged %d", delta);
       return -1;
     }
   buflen= a_buflen;
-  delta	= tino_alloc_align_size(&buflen);
+  delta	= tino_alloc_align_sizeO(&buflen);
   if (delta)
     {
       tino_err("FTTFC103 big buffer size must be alinged %d", delta);
@@ -231,36 +234,39 @@ main(int argc, char **argv)
 	show(n, pos);
       for (off=0; off<got; )
 	{
-	  int		cmp;
-	  size_t	max;
+	  int		get;
+	  size_t	max, cmp;
 
 	  max	= got-off;
 	  if (max>cmplen)
 	    max	= cmplen;
-	  tino_alloc_align_size(&max);	/* Hack for O_DIRECT, read only full pages	*/
-	  cmp	= tino_file_readE(fd[n], cmpbuf, max);
-	  if (cmp<0)
+	  cmp	= max;
+	  tino_alloc_align_sizeO(&cmp);	/* Hack for O_DIRECT, read only full pages	*/
+	  get	= tino_file_readE(fd[n], cmpbuf, cmp);
+	  if (get<0)
 	    {
-	      tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
+	      tino_err("%s at byte %llu read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), pos, argv[argn+n]);
 	      return -1;
 	    }
-	  if (!cmp)
+	  if (!get)
 	    {
 	      tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC124A" : "NTTFC123A"), pos, argv[argn+n]);
 	      return 101+n;
 	    }
-	  if (memcmp(cmpbuf, buf+off, cmp))
+	  if (max>get)
+	    max	= get;
+	  if (memcmp(cmpbuf, buf+off, max))
 	    {
 	      int	i, a, b;
 
-	      /* Paranoied as I am, default output is to inform about
+	      /* Paranoid as I am, default output is to inform about
 	       * some weird situation
 	       */
 	      a	= -1;
 	      b	= -1;
 	      /* Hunt for the byte which was different
 	       */
-	      for (i=0; i<cmp; i++)
+	      for (i=0; i<max; i++)
 		if (cmpbuf[i]!=buf[off+i])
 		  {
 		    a	= (unsigned char)buf[off+i];
@@ -281,8 +287,18 @@ main(int argc, char **argv)
 	      tino_err("ITTFC130B files differ at byte %llu ($%02x $%02x)", pos, a, b);
 	      return 10;
 	    }
-	  off	+= cmp;
-	  pos	+= cmp;
+	  off	+= max;
+	  pos	+= max;
+	  if (get>max)
+	    {
+	      /* Well, we have some remaining data.
+	       * Reverse roles.  Usually this means EOF.
+	       */
+	      off	= 0;
+	      got	= get-max;
+	      memcpy(buf, cmpbuf+max, got);
+	      n	= !n;
+	    }
 	}
       /* Now roles of the two files are reversed, so reads come from
        * the same file which was compared before.

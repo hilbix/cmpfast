@@ -1,4 +1,7 @@
-O_DIRECT now skipped on filesystems lacking O_DIRECT support.
+Bugfix:
 
-If open() fails with O_DIRECT, it is retried without.
-Some filesystems (like FUSE) apparently do not support O_DIRECT.
+Sometimes EOF was not detected correctly due to rounding problems.
+Usually instead of EOF a byte diff was detected.
+(If not the compared file probably was constructable from the previous reads somehow.)
+
+Read: Previous versions DID NOT WORK correctly!
