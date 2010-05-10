@@ -20,6 +20,9 @@
  * 02110-1301 USA.
  *
  * $Log$
+ * Revision 1.15  2010-05-10 05:14:51  tino
+ * Typo fix and a new fatal (104)
+ *
  * Revision 1.14  2010-03-30 19:42:48  tino
  * Bugfix on rounding problems.
  *
@@ -97,7 +100,7 @@ try_open_read(const char *name)
 /* Possible extensions:
  *
  * Use cryptographic checksums to protect against bit errors? (I am
- * just paranoied.)
+ * just paranoid.)
  *
  * Note:
  *
@@ -164,14 +167,14 @@ main(int argc, char **argv)
   delta	= tino_alloc_align_sizeO(&cmplen);
   if (delta)
     {
-      tino_err("FTTFC103 small buffer size must be alinged %d", delta);
+      tino_err("FTTFC103 small buffer size must be aligned %d", delta);
       return -1;
     }
   buflen= a_buflen;
   delta	= tino_alloc_align_sizeO(&buflen);
   if (delta)
     {
-      tino_err("FTTFC103 big buffer size must be alinged %d", delta);
+      tino_err("FTTFC103 big buffer size must be aligned %d", delta);
       return -1;
     }
   cmpbuf= tino_alloc_alignedO(cmplen);
@@ -291,9 +294,14 @@ main(int argc, char **argv)
 	  pos	+= max;
 	  if (get>max)
 	    {
-	      /* Well, we have some remaining data.
+	      /* Well, we have some remaining data (due to alignment).
 	       * Reverse roles.  Usually this means EOF.
 	       */
+	      if (off!=got)
+		{
+		  tino_err("FTTFC105 internal error: alignment overhead in the middle of the block: %llu/%llu", off, got);
+		  return -1;
+		}
 	      off	= 0;
 	      got	= get-max;
 	      memcpy(buf, cmpbuf+max, got);

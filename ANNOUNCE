@@ -1,7 +1,1 @@
-Bugfix:
-
-Sometimes EOF was not detected correctly due to rounding problems.
-Usually instead of EOF a byte diff was detected.
-(If not the compared file probably was constructable from the previous reads somehow.)
-
-Read: Previous versions DID NOT WORK correctly!
+Mainly a typo fix

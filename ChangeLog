@@ -1,3 +1,8 @@
+2010-05-10  Valentin Hilbig  <tino@zoo.03.softkill.net>
+
+	* cmpfast.c (main): typo (alinged)
+	(main): safetynet added to protect against impossible case that there are still alignment errors.
+
 2010-03-30  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* cmpfast.c (main): Bugfix: When reading less than a page,
