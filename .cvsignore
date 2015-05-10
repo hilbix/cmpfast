@@ -1,6 +1,0 @@
-Makefile
-Makefile.md5
-*.d
-*.cvsignore*
-cmpfast
-cmpfast_version.h

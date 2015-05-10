@@ -1,1 +1,2 @@
-Mainly a typo fix
+Announcements are now in the git commit log:
+git log --follow VERSION
