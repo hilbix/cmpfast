@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Sun May 10 14:02:06 CEST 2015
+#@MD5TINOIGN@ Creation date: Sun May 24 21:37:46 CEST 2015
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -168,5 +168,9 @@ $(PROG1):	$(PROG1).o $(OBJS) $(LIBS)
 # compiler generated dependencies, remove if incorrect
 
 # included: cmpfast.d
-$(PROG1).o:
+$(PROG1).o:  cmpfast.c tino/file.h tino/sysfix.h tino/sysfix_cygwin.h \
+ tino/sysfix_diet.h tino/type.h tino/alloc.h tino/err.h tino/fatal.h \
+ tino/ex.h tino/arg.h tino/debug.h tino/getopt.h tino/err.h \
+ cmpfast_version.h
+
 # end
