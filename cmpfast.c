@@ -1,66 +1,6 @@
-/* $Header$
+/* fast binary compare for two files
  *
- * fast binary compare for two files
- *
- * Copyright (C)2007-2008 Valentin Hilbig <webmaster@scylla-charybdis.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * $Log$
- * Revision 1.15  2010-05-10 05:14:51  tino
- * Typo fix and a new fatal (104)
- *
- * Revision 1.14  2010-03-30 19:42:48  tino
- * Bugfix on rounding problems.
- *
- * Revision 1.13  2008-10-20 01:00:34  tino
- * Bugfix release for Filesystems lacking O_DIRECT support.
- *
- * Revision 1.12  2008-10-19 23:15:04  tino
- * O_DIRECT
- *
- * Revision 1.11  2008-07-01 18:47:28  tino
- * Usage had SPC instead of TAB
- *
- * Revision 1.10  2008-05-13 15:45:02  tino
- * Current tinolib
- *
- * Revision 1.9  2008-05-13 15:43:12  tino
- * Standard return values on EOF
- *
- * Revision 1.8  2008-04-23 03:59:11  tino
- * Forgot status flushing
- *
- * Revision 1.7  2008-04-22 23:57:27  tino
- * Option -v
- *
- * Revision 1.6  2007-09-26 03:12:16  tino
- * Memory footprint decreased in most situations.
- *
- * Revision 1.5  2007/04/20 23:58:57  tino
- * Added better messages and option -s
- *
- * Revision 1.4  2007/04/20 20:53:35  tino
- * I mixed numbers in error output
- *
- * Revision 1.3  2007/04/20 20:50:52  tino
- * TYPE_ERR clarified (and used)
- *
- * Revision 1.2  2007/04/20 20:49:48  tino
- * TYPE_ERR (E) added
+ * 
  */
 
 #include "tino/file.h"
@@ -88,11 +28,11 @@ show(int n, unsigned long long pos)
 }
 
 static int
-try_open_read(const char *name)
+try_open_read(const char *name, int direct)
 {
   int	fd;
 
-  if ((fd=tino_file_openE(name, O_RDONLY|O_DIRECT))<0)
+  if (!direct || (fd=tino_file_openE(name, O_RDONLY|O_DIRECT))<0)
     fd	= tino_file_openE(name, O_RDONLY);
   return fd;
 }
@@ -119,7 +59,7 @@ main(int argc, char **argv)
   size_t		buflen, cmplen;
   char			*cmpbuf, *buf;
   unsigned long long	pos;
-  int			delta;
+  int			delta, async, direct;
 
   argn	= tino_getopt(argc, argv, 2, 2,
 		      TINO_GETOPT_VERSION(CMPFAST_VERSION)
@@ -131,6 +71,11 @@ main(int argc, char **argv)
 		      TINO_GETOPT_USAGE
 		      "h	This help"
 		      ,
+
+		      TINO_GETOPT_FLAG
+		      "a	async, do not use O_DIRECT (default)"
+		      , &async,
+
 		      TINO_GETOPT_ULONGINT TINO_GETOPT_SUFFIX
 		      TINO_GETOPT_DEFAULT
 		      TINO_GETOPT_MIN_PTR TINO_GETOPT_MAX
@@ -139,6 +84,10 @@ main(int argc, char **argv)
 		      , &a_buflen,
 		      1024ul*1024ul,						/* default	*/
 		      (unsigned long)(INT_MAX>SSIZE_MAX ? SSIZE_MAX : INT_MAX),	/* max	*/
+
+		      TINO_GETOPT_FLAG
+		      "d	direct, do use O_DIRECT"
+		      , &direct,
 
 		      TINO_GETOPT_ULONGINT TINO_GETOPT_SUFFIX
 		      TINO_GETOPT_DEFAULT
@@ -188,7 +137,7 @@ main(int argc, char **argv)
   for (n=0; n<2; n++)
     {
       fd[n]	= 0;
-      if (strcmp(argv[argn+n],"-") && (fd[n]=try_open_read(argv[argn+n]))<0)
+      if (strcmp(argv[argn+n],"-") && (fd[n]=try_open_read(argv[argn+n], direct && !async))<0)
 	{
 	  tino_err("%s open error on file %s", n ? "ETTFC102E" : "ETTFC101E", argv[argn+n]);
 	  return -1;
@@ -220,6 +169,8 @@ main(int argc, char **argv)
 	  tino_err("%s read error on file %s", (n ? "ETTFC112E" : "ETTFC111E"), argv[argn+n]);
 	  return -1;
 	}
+      posix_fadvise(fd[n], (off_t)pos, (off_t)got, POSIX_FADV_DONTNEED);
+      posix_fadvise(fd[n], (off_t)pos+got, (off_t)0, POSIX_FADV_SEQUENTIAL);
       n		= !n;
       if (!got)
 	{
@@ -256,6 +207,8 @@ main(int argc, char **argv)
 	      tino_err("%s at byte %llu EOF on file %s", (n ? "NTTFC124A" : "NTTFC123A"), pos, argv[argn+n]);
 	      return 101+n;
 	    }
+	  posix_fadvise(fd[n], (off_t)pos, (off_t)get, POSIX_FADV_DONTNEED);
+	  posix_fadvise(fd[n], (off_t)pos+get, (off_t)0, POSIX_FADV_SEQUENTIAL);
 	  if (max>get)
 	    max	= get;
 	  if (memcmp(cmpbuf, buf+off, max))

@@ -1,3 +1,8 @@
+2016-09-06  Valentin Hilbig  <tino@giganto.03.softkill.net>
+
+	* cmpfast.c (try_open_read, main): options -a and -d
+	(main): use of posix_fadvise
+
 2010-05-10  Valentin Hilbig  <tino@zoo.03.softkill.net>
 
 	* cmpfast.c (main): typo (alinged)
